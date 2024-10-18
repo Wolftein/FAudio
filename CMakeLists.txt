@@ -153,15 +153,6 @@ set_target_properties(${target} PROPERTIES OUTPUT_NAME "FAudio"
 	SOVERSION ${LIB_MAJOR_VERSION}
 )
 
-# XNA_Song Support
-if(NOT XNASONG)
-	target_compile_definitions(${target} PRIVATE DISABLE_XNASONG)
-endif()
-
-# Dump source voices to RIFF WAVE files
-if(DUMP_VOICES)
-	target_compile_definitions(${target} PRIVATE FAUDIO_DUMP_VOICES)
-endif()
 
 # SDL Dependency
 if (PLATFORM_WIN32)
@@ -230,76 +221,6 @@ else()
 	endif()
 endif()
 
-# utils/ Folder
-if(BUILD_UTILS)
-	enable_language(CXX)
-
-	# Shared ImGui Framework
-	add_library(uicommon STATIC
-		utils/uicommon/FAudioUI_main.cpp
-		utils/uicommon/imconfig.h
-		utils/uicommon/imgui.cpp
-		utils/uicommon/imgui_demo.cpp
-		utils/uicommon/imgui_draw.cpp
-		utils/uicommon/imgui_widgets.cpp
-		utils/uicommon/imgui.h
-		utils/uicommon/imgui_internal.h
-		utils/uicommon/imstb_rectpack.h
-		utils/uicommon/imstb_textedit.h
-		utils/uicommon/imstb_truetype.h
-	)
-	target_link_libraries(uicommon PUBLIC ${target})
-
-	# Shared WAV Resources
-	add_library(wavs STATIC utils/wavcommon/wavs.cpp)
-	target_compile_definitions(wavs PUBLIC
-		RESOURCE_PATH="${CMAKE_SOURCE_DIR}/utils/wavcommon/resources"
-	)
-
-	# These tools do NOT use uicommon
-	add_executable(testparse utils/testparse/testparse.c)
-	target_link_libraries(testparse PRIVATE ${target})
-	add_executable(testxwma utils/testxwma/testxwma.cpp)
-	target_link_libraries(testxwma PRIVATE ${target})
-	add_executable(showriffheader utils/showriffheader/showriffheader.cpp)
-	target_link_libraries(showriffheader PRIVATE ${target})
-
-	# These tools use uicommon, but NOT wavs
-	add_executable(facttool utils/facttool/facttool.cpp)
-	target_link_libraries(facttool PRIVATE uicommon)
-	add_executable(testfilter
-		utils/testfilter/audio.cpp
-		utils/testfilter/audio_faudio.cpp
-		utils/testfilter/audio.h
-		utils/testfilter/audio_player.h
-		utils/testfilter/audio_xaudio.cpp
-		utils/testfilter/oscillator.cpp
-		utils/testfilter/oscillator.h
-		utils/testfilter/testfilter.cpp
-	)
-	target_link_libraries(testfilter PRIVATE uicommon)
-
-	# These tools use both uicommon and wavs
-	add_executable(testreverb
-		utils/testreverb/audio.cpp
-		utils/testreverb/audio_faudio.cpp
-		utils/testreverb/audio.h
-		utils/testreverb/audio_xaudio.cpp
-		utils/testreverb/testreverb.cpp
-	)
-	target_link_libraries(testreverb PRIVATE uicommon wavs)
-	add_executable(testvolumemeter
-		utils/testvolumemeter/audio.cpp
-		utils/testvolumemeter/audio_faudio.cpp
-		utils/testvolumemeter/audio.h
-		utils/testvolumemeter/testvolumemeter.cpp
-	)
-	target_link_libraries(testvolumemeter PRIVATE uicommon wavs)
-	add_executable(voicepool
-		utils/voicepool/voicepool.cpp
-	)
-	target_link_libraries(voicepool PRIVATE uicommon wavs)
-endif()
 
 # define install directories
 # on mingw-w64 cross compilation $CMAKE_INSTALL_LIBDIR is set to an absolute
@@ -313,11 +234,4 @@ else()
 	set(FAudio_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
 	set(FAudio_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
 	set(FAudio_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-endif()
-
-# tests/ Folder
-if(BUILD_TESTS)
-	add_executable(faudio_tests tests/xaudio2.c)
-	target_compile_definitions(faudio_tests PRIVATE _DEFAULT_SOURCE _BSD_SOURCE)
-	target_link_libraries(faudio_tests PRIVATE ${target})
 endif()
